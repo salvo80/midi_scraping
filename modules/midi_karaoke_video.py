@@ -17,12 +17,14 @@ class MidiKaraokeVideo(object):
 
         n = 1
         for link in self.all_links:
-            print(n,'/',len(self.all_links))
+            print(n,'/',len(self.all_links),' and ',len(self.all_midi),' midi')
             n += 1
             page = connection.get(link)
+            if not page:
+                continue
             tree = etree.HTML(page.content)
 
-            singer = tree.xpath('//*h3[@class="post-title entry-title"]/text()')
+            singer = tree.xpath('h3[@class="post-title entry-title"]/text()')
             if singer:
                 singer = singer.split('-')[1]
                 singer = re.sub('(^\s+)|(\s+$)','',singer)
@@ -34,6 +36,7 @@ class MidiKaraokeVideo(object):
             self.addAll(altri_link, singer)
             
         print('found ',len(self.all_midi,' midi'))
+        return self.midi_by_singer
         
     def addAll(self, arr, singer):
         link_added = False

@@ -43,5 +43,9 @@ class Connection(object):
     proxyDict = {}
 
     def get(self, url):
-        return requests.get(url,headers={},proxies=self.proxyDict)
+        try:
+            return requests.get(url,headers={},proxies=self.proxyDict)
+        except:
+            return None
+        
 
