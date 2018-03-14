@@ -46,6 +46,7 @@ class Connection(object):
         try:
             return requests.get(url,headers={},proxies=self.proxyDict)
         except:
+            print('url error: ',url)
             return None
         
 

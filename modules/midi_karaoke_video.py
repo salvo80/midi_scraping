@@ -24,7 +24,8 @@ class MidiKaraokeVideo(object):
                 continue
             tree = etree.HTML(page.content)
 
-            singer = tree.xpath('h3[@class="post-title entry-title"]/text()')
+            singer = tree.xpath('//h3[@class="post-title entry-title"]/text()')[0]
+            print('singer: ',singer)
             if singer:
                 singer = singer.split('-')[1]
                 singer = re.sub('(^\s+)|(\s+$)','',singer)
@@ -34,8 +35,10 @@ class MidiKaraokeVideo(object):
 
             altri_link = tree.xpath('//*[@class="post-body entry-content"]//font/li/a/@href')
             self.addAll(altri_link, singer)
+            if len(self.midi_by_singer.items())>0:
+                break
             
-        print('found ',len(self.all_midi,' midi'))
+        print('found ',len(self.all_midi),' midi')
         return self.midi_by_singer
         
     def addAll(self, arr, singer):
