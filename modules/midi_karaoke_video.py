@@ -1,37 +1,57 @@
 
 from lxml import etree
+import re
 
 class MidiKaraokeVideo(object):
+    all_links = []
+    all_midi = []
+    midi_by_singer = {}
+
     def getKarList(self, connection):
-        print('getKarList!!!')
-        """
+        
         page = connection.get('https://midi-karaoke-video.blogspot.it/2014/11/midi-karaoke-cantanti-italiani-ordine.html')
         tree = etree.HTML(page.content)
 
-        links = tree.xpath('//*[@class="post-body entry-content"]/center/table/tr[1]/td[1]/center/font/a/@href')
-        print(len(links))
-        print(links[0])
+        links = tree.xpath('//*[@class="post-body entry-content"]//font/a/@href')
+        self.addAll(links, None)
 
-        link = links[0]
+        n = 1
+        for link in self.all_links:
+            print(n,'/',len(self.all_links))
+            n += 1
+            page = connection.get(link)
+            tree = etree.HTML(page.content)
 
-        page = connection.get(link)
-        tree = etree.HTML(page.content)
+            singer = tree.xpath('//*h3[@class="post-title entry-title"]/text()')
+            if singer:
+                singer = singer.split('-')[1]
+                singer = re.sub('(^\s+)|(\s+$)','',singer)
 
-        altri_link = tree.xpath('//*[@class="post-body entry-content"]/center[2]/table[2]/tr[1]/td[1]/center/font/font/a/@href')
+            altri_link = tree.xpath('//*[@class="post-body entry-content"]//font/a/@href')
+            self.addAll(altri_link, singer)
 
-        print('link per A :', len(altri_link))
+            altri_link = tree.xpath('//*[@class="post-body entry-content"]//font/li/a/@href')
+            self.addAll(altri_link, singer)
+            
+        print('found ',len(self.all_midi,' midi'))
+        
+    def addAll(self, arr, singer):
+        link_added = False
+        midi_added = False
+        for ele in arr:
+            if ele.endswith('.mid'):
+                if self.all_midi.count(ele) == 0:
+                    self.all_midi.append(ele)
+                    midi_added = True
+                    if singer:
+                        self.add(singer, ele)
+            else:
+                if self.all_links.count(ele) == 0:
+                    self.all_links.append(ele)
+                    link_added = True
+        return link_added, midi_added
 
-        for i in range(len(altri_link)):
-            #print('primo link A :',altri_link.pop())
-            continue
-
-        link = altri_link[0]
-        print('vado su ',link)
-        page = connection.get(link)
-        tree = etree.HTML(page.content)
-        altri_link = tree.xpath('//*[@class="post-body entry-content"]/center[1]/table')
-
-        print('per download :',len(altri_link))
-        print('per download :',altri_link[0])
-        print(etree.tostring(altri_link[1]))
-        """
+    def add(self, singer, url):
+        if not self.midi_by_singer.has_key(singer):
+            self.midi_by_singer[singer] = []
+        self.midi_by_singer[singer].append(url)

@@ -1,26 +1,37 @@
 from utils import ModuleLoader, Connection
+import os, requests
 
 DOWNLOAD_FOLDER = "d:\\salvo\\kar\\"
 
 print('*** START ***')
 
-def download(karModel):
-    return
+main_folder = '/home/salvo/kar/'
+
+def download_file(folder, url):
+    folder = os.path.join(main_folder, folder)
+    local_filename = os.path.join(folder, url.split('/')[-1])
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    # NOTE the stream=True parameter
+    r = requests.get(url, stream=True)
+    with open(local_filename, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=1024):
+            if chunk:  # filter out keep-alive new chunks
+                f.write(chunk)
+                # f.flush() commented by recommendation from J.F.Sebastian
+    return local_filename
 
 modules = ModuleLoader().load('modules')
 
-for module_name, class_name in modules:
-    print('module: ',module_name,' class: ', class_name)
-    module = __import__(module_name)
-    class_ = getattr(module, class_name)
-    m = class_()
+for clazz in modules:
+    m = clazz()
     lst = m.getKarList(Connection())
-    for l in lst:
-        print('{',l.singer)
-        print(l.title)
-        print(l.url)
-        print(l.isKar,'}')
-        download(l)
+    n = 1
+    m = len(lst)
+    for singer,url in lst.iteritems():
+        print(n,'/',m)
+        n += 1
+        download_file(singer,url)
 
 print('*** END ***')
 

@@ -17,15 +17,18 @@ class ModuleLoader(object):
             if is_pkg: 
                 continue
             module_code = __import__(name)
-            for name, obj in inspect.getmembers(module_code):
-                if inspect.isclass(obj):
-                    print(name, obj)
-                    moduleClasses.append(obj)
-                    #for thing in contents:
-                    #    if is_valid(thing):
-                    #        moduleClasses.append((name, obj))
+            class_name = dir(getattr(module_code, name.split('.')[-1]))[0]
+            clazz = self.load_clazz(name + '.' + class_name)
+            moduleClasses.append(clazz)
 
         return moduleClasses
+
+    def load_clazz(self, name):
+        components = name.split('.')
+        mod = __import__(components[0])
+        for comp in components[1:]:
+            mod = getattr(mod, comp)
+        return mod
 
 class Singleton(type):
     _instances = {}
@@ -37,8 +40,8 @@ class Singleton(type):
 class Connection(object):
     __metaclass__ = Singleton
     # TODO get proxy settings from environment
-    proxyDict = {'http':'http://lupo:Mattone_Febbraio@proxy.eng.it:3128'
-             ,'https':'http://lupo:Mattone_Febbraio@proxy.eng.it:3128'}
+    proxyDict = {}
+
     def get(self, url):
         return requests.get(url,headers={},proxies=self.proxyDict)
 
