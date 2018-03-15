@@ -1,5 +1,5 @@
 from utils import ModuleLoader, Connection
-import os, requests
+import os, requests, urllib
 
 DOWNLOAD_FOLDER = "d:\\salvo\\kar\\"
 
@@ -8,17 +8,18 @@ print('*** START ***')
 main_folder = '/home/salvo/kar/'
 
 def download_file(folder, url):
+    url = urllib.unquote(url)
     folder = os.path.join(main_folder, folder)
     local_filename = os.path.join(folder, url.split('/')[-1])
     if not os.path.exists(folder):
         os.makedirs(folder)
-    # NOTE the stream=True parameter
-    r = requests.get(url, stream=True)
-    with open(local_filename, 'wb') as f:
-        for chunk in r.iter_content(chunk_size=1024):
-            if chunk:  # filter out keep-alive new chunks
-                f.write(chunk)
-                # f.flush() commented by recommendation from J.F.Sebastian
+    if not os.path.isfile(local_filename):
+        r = requests.get(url, stream=True)
+        with open(local_filename, 'wb') as f:
+            for chunk in r.iter_content(chunk_size=1024):
+                if chunk:  # filter out keep-alive new chunks
+                    f.write(chunk)
+                    # f.flush() commented by recommendation from J.F.Sebastian
     return local_filename
 
 modules = ModuleLoader().load('modules')
@@ -28,10 +29,15 @@ for clazz in modules:
     lst = m.getKarList(Connection())
     n = 1
     m = len(lst)
-    for singer,url in lst.iteritems():
-        print(n,'/',m)
+    for singer,urls in lst.iteritems():
+        print('singer ',n,'/',m)
         n += 1
-        download_file(singer,url)
+        a = 1
+        b = len(urls)
+        for url in urls:
+            print('song ',a,'/',b)
+            download_file(singer,url)
+            a += 1
 
 print('*** END ***')
 
